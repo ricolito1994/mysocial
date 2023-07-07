@@ -16,6 +16,7 @@ onMounted(() => {
     .listen('MessageNotification', (event) => {
         // Handle the received private message event
         conversationArray.value.push(event.message);
+        scrollToBottom();
     });
     
 })
@@ -26,14 +27,17 @@ const selFriend = async (friend) => {
     let resArray = await getChatMessages(user.id, friend.id);
     
     conversationArray.value = resArray.data.messages;
-    
+    scrollToBottom();
+    /*conversationArray = conversations.filter(item => 
+        ((item.sender_id === friend.index) && (item.receiver_id === user.id)) || ((item.sender_id === user.id) && (item.receiver_id === friend.index)));
+    */
+}
+
+const scrollToBottom = () => {
     setTimeout(() => {
         const chatground = document.querySelector("#chat-main-ground");
         chatground.scrollTop = chatground.scrollHeight;
     },100);
-    /*conversationArray = conversations.filter(item => 
-        ((item.sender_id === friend.index) && (item.receiver_id === user.id)) || ((item.sender_id === user.id) && (item.receiver_id === friend.index)));
-    */
 }
 
 const sendMessage = async () => {
@@ -46,6 +50,7 @@ const sendMessage = async () => {
     await sendChatMessage(user.id, selectedFriend.value.id, messageObject);
     conversationArray.value.push (messageObject);
     chatMessage.value = "";
+    scrollToBottom();
 }
 
 const handleEnterKey = (event) => {
