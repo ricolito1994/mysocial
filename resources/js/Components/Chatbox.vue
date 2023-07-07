@@ -2,31 +2,45 @@
 import { Link, useForm, usePage } from '@inertiajs/vue3';
 import { useEventBus } from '@/Services/EventBus';
 import { ref , onMounted } from 'vue';
-import { getChatMessages , sendChatMessage } from '@/Services/Request';
+import { getChatMessages , sendChatMessage , updateMessage , deleteMessage } from '@/Services/Request';
 import ChatBubble from './ChatBubble.vue';
 
 const user = usePage().props.auth.user;
 const eventBus = useEventBus();
 let selectedFriend = ref(null);
+let selectedChat = ref(null);
 let conversationArray = ref([]);
 let chatMessage = ref("");
+let chatEditMode = ref(false);
 
 onMounted(() => {
-    window.Echo.private('private-chat.' + user.id)
-    .listen('MessageNotification', (event) => {
-        // Handle the received private message event
-        conversationArray.value.push(event.message);
-        scrollToBottom();
+    window.Echo.private('private-chat.' + user.id).listen('MessageNotification', (event) => {
+        console.log(event)
+        if (!event.message.method) {
+            if (event.sender_id == selectedFriend.value.id) {
+                conversationArray.value.push(event.message.chat);
+                scrollToBottom();
+            }
+        } else {
+            switch (event.message.method) {
+                case "updateChat":
+                    alterChatMessage (event.message.chatId, 1, event.message.message);
+                    break;
+                case "deleteChat":
+                    alterChatMessage (event.message.chatId, 0);
+                    break;
+            }
+        }
     });
-    
 })
 
 const selFriend = async (friend) => {
     selectedFriend.value = friend;
-
+    
     let resArray = await getChatMessages(user.id, friend.id);
     
     conversationArray.value = resArray.data.messages;
+
     scrollToBottom();
     /*conversationArray = conversations.filter(item => 
         ((item.sender_id === friend.index) && (item.receiver_id === user.id)) || ((item.sender_id === user.id) && (item.receiver_id === friend.index)));
@@ -46,11 +60,17 @@ const sendMessage = async () => {
         receiver_id : selectedFriend.value.id,
         sender_id : user.id,
     }
-    //console.log(selectedFriend.value.id)
-    await sendChatMessage(user.id, selectedFriend.value.id, messageObject);
-    conversationArray.value.push (messageObject);
+    if (!chatEditMode.value) {
+        let chat = await sendChatMessage(user.id, selectedFriend.value.id, messageObject);
+        conversationArray.value.push (chat.data.chat);
+        scrollToBottom();
+    } else {
+        await updateMessage(selectedChat.value.id, chatMessage.value);
+        chatEditMode.value = !chatEditMode.value;
+        alterChatMessage(selectedChat.value.id, 1, chatMessage.value);
+        selectedChat.value = null;
+    }
     chatMessage.value = "";
-    scrollToBottom();
 }
 
 const handleEnterKey = (event) => {
@@ -61,10 +81,30 @@ const handleEnterKey = (event) => {
     }
 }
 
+const deleteChat = async ( chat ) => {
+    if (confirm('Are you sure you want to remove this message?')) {
+        await deleteMessage (chat.id);
+        alterChatMessage(chat.id, 0);
+    }
+}
 
+const updateChat = (chat) => {
+    chatEditMode.value = true;
+    selectedChat.value = chat;
+    chatMessage.value = chat.message; 
+}
+
+const alterChatMessage = (chatId, type, chatMessage) => {
+    let indexChat = conversationArray.value.findIndex(x => x.id == chatId);
+    //console.log(indexChat,chatId,conversationArray.value[chatId])
+    if (type==1) {
+        conversationArray.value[indexChat].message = chatMessage;
+    } else {
+        conversationArray.value.splice(indexChat, 1);
+    }
+}
 
 eventBus.$on('selectfriend',  selFriend);
-
 </script>
 
 <template> 
@@ -80,7 +120,7 @@ eventBus.$on('selectfriend',  selFriend);
             </div>
             <div style="height:100%;" v-if="selectedFriend">
                 <div id="chat-main-ground">
-                    <ChatBubble v-for="chat in conversationArray" v-bind:key="chat.id" :chat="chat" :user="user"></ChatBubble>
+                    <ChatBubble :deleteChat="deleteChat" :updateChat="updateChat" v-for="chat in conversationArray" :key="chat.id" :chat="chat" :user="user"></ChatBubble>
                 </div>
                 <div id="chat-send-ground">
                     <div style="width:80%;float:left;">

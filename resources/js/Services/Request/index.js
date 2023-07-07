@@ -37,3 +37,33 @@ export function sendChatMessage ( senderId, receiverId, message ) {
 
     });
 }
+
+export function deleteMessage ( chatId ) {
+    return new Promise ( (resolve, reject) => {
+        let response =  axios.delete(`${host}:${port}/deleteMessage/${chatId}`);
+        response.then (function (res) {
+            resolve(res.chat);
+        })
+        .catch(err=>{
+            console.log(err);
+        })
+
+    });
+}
+
+export function updateMessage ( chatId, message ) {
+    return new Promise ( (resolve, reject) => {
+        let response =  axios.post(`${host}:${port}/updateMessage`, {
+            chatId : chatId,
+            message : message
+        });
+
+        response.then (function (res) {
+            resolve(res);
+        })
+        .catch(err=>{
+            reject(err);
+        })
+
+    });
+}

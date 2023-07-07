@@ -42,6 +42,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/chatMessages', [ChatController::class, 'getMessages'])->name('chats.messages');
 
     Route::post('/sendMessage', [ChatController::class, 'sendMessage'])->name('chats.send');
+
+    Route::post('/updateMessage', [ChatController::class, 'updateMessage'])->name('chats.updateMessage');
+
+    Route::delete('/deleteMessage/{chatId}', [ChatController::class, 'deleteMessage'])->name('chats.updateMessage');
 });
 
 

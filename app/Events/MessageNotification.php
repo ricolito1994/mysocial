@@ -16,14 +16,16 @@ class MessageNotification implements ShouldBroadcast
 
     public $message;
     public $receiver_id;
+    public $sender_id;
     /**
      * Create a new event instance.
      */
-    public function __construct($message, $receiver_id)
+    public function __construct($message, $receiver_id, $sender_id)
     {
         //
         $this->message = $message;
         $this->receiver_id = $receiver_id;
+        $this->sender_id = $sender_id;
     }
 
     /**
