@@ -17,6 +17,7 @@ onMounted(() => {
         // Handle the received private message event
         conversationArray.value.push(event.message);
     });
+    
 })
 
 const selFriend = async (friend) => {
@@ -26,6 +27,10 @@ const selFriend = async (friend) => {
     
     conversationArray.value = resArray.data.messages;
     
+    setTimeout(() => {
+        const chatground = document.querySelector("#chat-main-ground");
+        chatground.scrollTop = chatground.scrollHeight;
+    },100);
     /*conversationArray = conversations.filter(item => 
         ((item.sender_id === friend.index) && (item.receiver_id === user.id)) || ((item.sender_id === user.id) && (item.receiver_id === friend.index)));
     */
@@ -100,7 +105,8 @@ eventBus.$on('selectfriend',  selFriend);
     #chat-ground {
         height: 90%;
         max-height: 90%;
-        background-color: rgb(211 211 206 / 50%);;
+        background-color: rgb(211 211 206 / 50%);
+        padding: 3%;
     }
 
     #chat-main-ground {
@@ -108,12 +114,14 @@ eventBus.$on('selectfriend',  selFriend);
         max-height: 85%;
         overflow-y: scroll;
         padding:2%;
+        scroll-behavior: smooth;
     }
 
     #chat-send-ground {
         height: 15%;
         width:100%;
     }
+
     #send-chat {
         width:100%;
         padding:2.9vh;

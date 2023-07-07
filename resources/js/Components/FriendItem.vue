@@ -47,7 +47,7 @@ const selectFriend = ( friend, friendId ) => {
         </div>
         <div id="friend-profile-details">
             <div><strong>{{ friend.name }}</strong></div>
-            <div>{{ activeFriendId }}</div>
+            <div></div>
         </div>
         <div style="clear:both"></div>
    </div>

@@ -16,7 +16,7 @@ return new class extends Migration
             $table->timestamps();
             $table->unsignedBigInteger('sender_id');
             $table->unsignedBigInteger('receiver_id');
-            $table->unsignedBigInteger('chat_room_id');
+            /*$table->unsignedBigInteger('chat_room_id')->nullable();*/
             $table->text('message');
         });
     }
