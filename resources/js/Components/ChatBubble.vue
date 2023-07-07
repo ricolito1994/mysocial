@@ -26,8 +26,8 @@ defineProps ({
     display: inline-block;
 }
 .chat-bubble {
-    width:30%;
-    padding:1%;
+    width:50%;
+    padding:2%;
 }
 
 .mine-chat {
