@@ -21,12 +21,20 @@ export function getChatMessages ( userId, friendId ) {
 }
 
 export function sendChatMessage ( senderId, receiverId, message ) {
+    let messageObject =  (message instanceof FormData) ? message : {
+        senderId : senderId,
+        receiverId : receiverId,
+        message : message
+    }
+
+    let headers = !(message instanceof FormData) ? {} : {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+    }
+
     return new Promise ( (resolve, reject) => {
-        let response =  axios.post(`${host}:${port}/sendMessage`, {
-            senderId : senderId,
-            receiverId : receiverId,
-            message : message
-        });
+        let response =  axios.post(`${host}:${port}/sendMessage`, messageObject, headers);
 
         response.then (function (res) {
             resolve(res);

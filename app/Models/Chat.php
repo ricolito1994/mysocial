@@ -23,4 +23,9 @@ class Chat extends Model
     {
         return $this->hasOne('App\Models\User', 'id', 'sender_id');
     }
+
+    public function files() 
+    {
+       return $this->hasMany('App\Models\Upload', 'model_id' , 'id');
+    }
 }

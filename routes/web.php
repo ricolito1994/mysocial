@@ -33,7 +33,7 @@ Route::get('/', function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', function () {
         return Inertia::render('Dashboard');
-    })->name('dashboard');;
+    })->name('dashboard');
 
     Route::get('/chats', [ChatController::class, 'index'])->name('chats');
 
