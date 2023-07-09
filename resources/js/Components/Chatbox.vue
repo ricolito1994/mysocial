@@ -1,10 +1,11 @@
 <script setup>
-import { Link, useForm, usePage } from '@inertiajs/vue3';
+import { usePage } from '@inertiajs/vue3';
 import { useEventBus } from '@/Services/EventBus';
 import { ref , onMounted } from 'vue';
 import { getChatMessages , sendChatMessage , updateMessage , deleteMessage } from '@/Services/Request';
 import ChatBubble from './ChatBubble.vue';
-
+import DropFileUpload from './DropFileUpload.vue';
+import FileListPreview from './FileListPreview.vue';
 const user = usePage().props.auth.user;
 const eventBus = useEventBus();
 let selectedFriend = ref(null);
@@ -12,6 +13,8 @@ let selectedChat = ref(null);
 let conversationArray = ref([]);
 let chatMessage = ref("");
 let chatEditMode = ref(false);
+let mediafiles = ref([]);
+let uploadfiles = ref([]);
 
 onMounted(() => {
     window.Echo.private('private-chat.' + user.id).listen('MessageNotification', (event) => {
@@ -36,7 +39,9 @@ onMounted(() => {
 
 const selFriend = async (friend) => {
     selectedFriend.value = friend;
-    
+    uploadfiles.value = [];
+    mediafiles.value = [];
+
     let resArray = await getChatMessages(user.id, friend.id);
     
     conversationArray.value = resArray.data.messages;
@@ -61,8 +66,21 @@ const sendMessage = async () => {
         sender_id : user.id,
     }
     if (!chatEditMode.value) {
+        if (uploadfiles.value.length > 0) {
+            let files = new FormData();
+
+            uploadfiles.value.forEach ( (file , index) => {
+                files.append(`files[${index}]`, file);
+            })
+
+            files.append('messageObject', JSON.stringify(messageObject));
+            messageObject = files;
+        }
         let chat = await sendChatMessage(user.id, selectedFriend.value.id, messageObject);
         conversationArray.value.push (chat.data.chat);
+        uploadfiles.value = [];
+        mediafiles.value = [];
+        onRemoveFiles();
         scrollToBottom();
     } else {
         await updateMessage(selectedChat.value.id, chatMessage.value);
@@ -96,12 +114,21 @@ const updateChat = (chat) => {
 
 const alterChatMessage = (chatId, type, chatMessage) => {
     let indexChat = conversationArray.value.findIndex(x => x.id == chatId);
-    //console.log(indexChat,chatId,conversationArray.value[chatId])
     if (type==1) {
         conversationArray.value[indexChat].message = chatMessage;
     } else {
         conversationArray.value.splice(indexChat, 1);
     }
+}
+
+const onDropFiles = ( ) => {
+    let chatContainer = document.getElementById('chat-main-ground');
+        chatContainer.style.height = "70%";
+}
+
+const onRemoveFiles = ( ) => {
+    let chatContainer = document.getElementById('chat-main-ground');
+        chatContainer.style.height = "85%";
 }
 
 eventBus.$on('selectfriend',  selFriend);
@@ -118,9 +145,12 @@ eventBus.$on('selectfriend',  selFriend);
                     chats will appear here
                 </div>
             </div>
-            <div style="height:100%;" v-if="selectedFriend">
+            <DropFileUpload :mediafiles="mediafiles" :uploadfiles="uploadfiles" :onDropFiles="onDropFiles" :filelistContainer="'#chat-file-ground'" v-if="selectedFriend">
                 <div id="chat-main-ground">
-                    <ChatBubble :deleteChat="deleteChat" :updateChat="updateChat" v-for="chat in conversationArray" :key="chat.id" :chat="chat" :user="user"></ChatBubble>
+                    <ChatBubble :deleteChat="deleteChat" :updateChat="updateChat" v-for="(chat, index) in conversationArray" :key="index" :chat="chat" :user="user"></ChatBubble>
+                </div>
+                <div id="chat-file-ground" v-if="mediafiles.length > 0">
+                    <FileListPreview :mediafiles="mediafiles" :uploadfiles="uploadfiles" :onRemoveFiles="onRemoveFiles"/>
                 </div>
                 <div id="chat-send-ground">
                     <div style="width:80%;float:left;">
@@ -130,7 +160,8 @@ eventBus.$on('selectfriend',  selFriend);
                         <button @click="sendMessage" id="send-chat">send</button>
                     </div>
                 </div>
-            </div>
+            </DropFileUpload>
+            
         </div>
     </div>
 </template>
@@ -160,6 +191,11 @@ eventBus.$on('selectfriend',  selFriend);
         overflow-y: scroll;
         padding:2%;
         scroll-behavior: smooth;
+    }
+
+    #chat-file-ground {
+        height:15%;
+        width: 100%;
     }
 
     #chat-send-ground {
