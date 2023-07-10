@@ -4,7 +4,7 @@
 
 ## About Chat App
 
-Growmodo test task chat app using laravel breeze, vuejs, inertia and pusher for websockets
+test task chat app using laravel breeze, vuejs, inertia and pusher for websockets
 
 ## Instructions
 
