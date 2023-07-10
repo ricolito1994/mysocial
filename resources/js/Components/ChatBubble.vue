@@ -90,6 +90,7 @@ defineProps ({
     height: 100%;
     float:left;
     padding-left: 1%;
+    padding-bottom: 1%;
 }
 
 .uploaded-file-1 {
