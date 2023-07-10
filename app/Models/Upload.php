@@ -20,6 +20,6 @@ class Upload extends Model
 
     public function post() 
     {
-        
+        return $this->belongsTo ('App\Models\Post', 'id', 'model_id');
     }
 }
